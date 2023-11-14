@@ -1,0 +1,16 @@
+{
+    "name": "ClimApp",
+    "shortName": "ClimApp",
+    "start_url": "ClimApp/index.html",
+    "display": "Standalone",
+    "scope": ".",
+    "description": "ClimApp",
+    "icons": [
+        {
+          "src": "./icon.png",
+          "type": "image/png",
+          "sizes": "512x512"
+        }
+    ]
+
+}

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi PWA de Clima</title>
     <link rel="stylesheet" href="complementos/styles.css">
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <!-- Pantalla de bienvenida -->
@@ -107,5 +108,27 @@
             document.querySelector('.home-screen').style.display = 'flex';
         }
     </script>
+  <script>
+
+    window.addEventListener('load', () => {
+        registrarSW();
+    });
+
+    async function registrarSW() { 
+        if('serviceWorker' in navigator) {
+            
+            try{
+                await navigator 
+                .serviceWorker
+                .register('sw.js');
+            }
+
+            catch (e){    
+                console.log('El service worker no pudo ser registrado');
+            } 
+        } 
+    }
+
+</script>
 </body>
 </html>
