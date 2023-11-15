@@ -28,13 +28,28 @@
         </div>
     </div>
 
-    <script>
+     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            showSplashScreen();
+
+            // Recuperar la última ciudad consultada de IndexedDB
+            readLastCityFromDB().then(lastCity => {
+                if (lastCity) {
+                    document.getElementById('cityInput').value = lastCity;
+                    searchWeather();
+                }
+
+                setTimeout(function () {
+                    hideSplashScreen();
+                    showHomeScreen();
+                }, 2000);
+            });
+        });
+
         // Función para realizar la búsqueda del clima
         function searchWeather() {
-            // Obtener el valor del campo de búsqueda
             const city = document.getElementById('cityInput').value;
 
-            // Comprobar si se proporcionó una ciudad
             if (city.trim() === '') {
                 alert('Por favor, ingrese el nombre de la ciudad.');
                 return;
@@ -46,16 +61,31 @@
 
             // Realizar la solicitud
             fetch(apiUrl)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('No se pudo obtener datos del clima. Por favor, ingrese una ciudad válida.');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    // Manejar los resultados de la API
                     displayWeatherResults(data);
+
+                    // Almacenar la ciudad consultada en IndexedDB
+                    saveLastCityToDB(city);
                 })
                 .catch(error => {
                     console.error('Error al obtener datos del clima:', error);
+                    alert('Error al obtener datos del clima. Por favor, ingrese una ciudad válida.');
+                    
+                    // Intentar cargar la información almacenada localmente en modo offline
+                    readLastCityFromDB().then(lastCity => {
+                        if (lastCity) {
+                            displayOfflineWeatherResults(lastCity);
+                        }
+                    });
                 });
         }
-        
+
         // Función para mostrar los resultados del clima en la interfaz
         function displayWeatherResults(data) {
             const weatherResultsElement = document.getElementById('weatherResults');
@@ -85,6 +115,21 @@
             weatherResultsElement.appendChild(descriptionElement);
         }
 
+        // Función para mostrar resultados en modo offline
+        function displayOfflineWeatherResults(lastCity) {
+            const weatherResultsElement = document.getElementById('weatherResults');
+
+            // Limpiar resultados anteriores
+            weatherResultsElement.innerHTML = '';
+
+            // Crear elementos para mostrar la información almacenada localmente
+            const offlineMessageElement = document.createElement('p');
+            offlineMessageElement.textContent = `Mostrando la ultima busqueda realizada: ${lastCity} almacenada localmente (modo offline).`;
+
+            // Agregar elementos al contenedor
+            weatherResultsElement.appendChild(offlineMessageElement);
+        }
+
         // JavaScript para mostrar y ocultar las pantallas (sin cambios)
         document.addEventListener('DOMContentLoaded', function () {
             showSplashScreen();
@@ -106,6 +151,50 @@
 
         function showHomeScreen() {
             document.querySelector('.home-screen').style.display = 'flex';
+        }
+
+        // Funciones para trabajar con IndexedDB
+        function saveLastCityToDB(city) {
+            const request = indexedDB.open('WeatherDB', 1);
+
+            request.onupgradeneeded = function (event) {
+                const db = event.target.result;
+                const store = db.createObjectStore('cities', { keyPath: 'id' });
+                store.add({ id: 1, name: city });
+            };
+
+            request.onsuccess = function (event) {
+                const db = event.target.result;
+                const transaction = db.transaction(['cities'], 'readwrite');
+                const store = transaction.objectStore('cities');
+                store.put({ id: 1, name: city });
+            };
+        }
+
+        function readLastCityFromDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('WeatherDB', 1);
+
+                request.onupgradeneeded = function (event) {
+                    event.target.result.createObjectStore('cities', { keyPath: 'id' });
+                };
+
+                request.onsuccess = function (event) {
+                    const db = event.target.result;
+                    const transaction = db.transaction(['cities'], 'readonly');
+                    const store = transaction.objectStore('cities');
+                    const request = store.get(1);
+
+                    request.onsuccess = function (event) {
+                        const lastCity = event.target.result ? event.target.result.name : null;
+                        resolve(lastCity);
+                    };
+                };
+
+                request.onerror = function (event) {
+                    reject('Error al abrir la base de datos: ' + event.target.errorCode);
+                };
+            });
         }
     </script>
   <script>

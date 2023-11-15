@@ -1,7 +1,7 @@
 {
     "name": "ClimApp",
     "shortName": "ClimApp",
-    "start_url": "ClimApp/index.html",
+    "start_url": "/ClimApp/index.html",
     "display": "Standalone",
     "scope": ".",
     "description": "ClimApp",
