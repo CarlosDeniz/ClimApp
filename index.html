@@ -10,7 +10,7 @@
 <body>
     <!-- Pantalla de bienvenida -->
     <div class="splash-screen">
-        <h1>Bienvenido a la PWA de Clima</h1>
+        <h1>Bienvenido a ClimApp</h1>
     </div>
 
     <!-- Pantalla principal -->
@@ -72,6 +72,12 @@
 
                     // Almacenar la ciudad consultada en IndexedDB
                     saveLastCityToDB(city);
+
+                    Notification.requestPermission().then(function (result){
+                    if (result === "granted"){
+                        randomNotification(city);
+                    }
+            });
                 })
                 .catch(error => {
                     console.error('Error al obtener datos del clima:', error);
@@ -83,7 +89,9 @@
                             displayOfflineWeatherResults(lastCity);
                         }
                     });
-                });
+                },
+                   
+                );
         }
 
         // Función para mostrar los resultados del clima en la interfaz
@@ -108,11 +116,11 @@
 
             const descriptionElement = document.createElement('p');
             descriptionElement.textContent = `Descripción: ${data.data[0].weather.description}`;
-
             // Agregar elementos al contenedor
             weatherResultsElement.appendChild(cityNameElement);
             weatherResultsElement.appendChild(temperatureElement);
             weatherResultsElement.appendChild(descriptionElement);
+            
         }
 
         // Función para mostrar resultados en modo offline
@@ -128,6 +136,7 @@
 
             // Agregar elementos al contenedor
             weatherResultsElement.appendChild(offlineMessageElement);
+            
         }
 
         // JavaScript para mostrar y ocultar las pantallas (sin cambios)
@@ -195,6 +204,22 @@
                     reject('Error al abrir la base de datos: ' + event.target.errorCode);
                 };
             });
+        }
+      
+
+        
+        function randomNotification(lastCity){
+            var randomItem = Math.floor(Math.random()*1);
+            var notifTitle = "Sistema PWA";
+            var notifBody = "Has buscado el clima de: " +lastCity+ ".";
+            var notifImg = "icon.png";
+            var options = {
+                body: notifBody,
+                icon: notifImg,
+              
+            };
+            var notif = new Notification(notifTitle, options);
+            //setTimeout(randomNotification, 30000);
         }
     </script>
   <script>
